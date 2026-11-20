@@ -1,0 +1,1268 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Living with Artificial Intelligence — Интерактивный барабан IELTS</title>
+    <!-- Подключение Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Подключение шрифта Inter и JetBrains Mono для таймера -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Плавная прокрутка и кастомные стили */
+        html {
+            scroll-behavior: smooth;
+        }
+        @keyframes pulse-ring {
+            0% { transform: scale(0.95); opacity: 0.7; }
+            50% { transform: scale(1.03); opacity: 1; }
+            100% { transform: scale(0.95); opacity: 0.7; }
+        }
+        .animate-pulse-slow {
+            animation: pulse-ring 3s infinite ease-in-out;
+        }
+        @keyframes pop-in {
+            0% { opacity: 0; transform: translateY(10px) scale(0.98); }
+            100% { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .card-appear {
+            animation: pop-in 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        /* Скрытие полосы прокрутки для панели быстрого выбора */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col selection:bg-indigo-200 selection:text-indigo-900">
+
+    <!-- Верхняя панель навигации -->
+    <header class="bg-indigo-950 text-white shadow-lg sticky top-0 z-30 border-b border-indigo-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-wrap items-center justify-between gap-3">
+            <div class="flex items-center gap-3">
+                <div class="bg-indigo-600 p-2.5 rounded-xl shadow-inner flex items-center justify-center">
+                    <svg class="w-6 h-6 text-indigo-100" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-lg sm:text-xl font-bold tracking-tight text-white leading-tight">
+                        Living with Artificial Intelligence
+                    </h1>
+                    <p class="text-xs sm:text-sm text-indigo-300 font-medium">
+                        Интерактивный барабан • Reading Comprehension & IELTS Speaking Part 3
+                    </p>
+                </div>
+            </div>
+
+            <!-- Кнопки управления в шапке -->
+            <div class="flex items-center gap-2 sm:gap-3">
+                <!-- Переключатель звука -->
+                <button id="soundToggleBtn" type="button" title="Включить или выключить звук"
+                    class="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-indigo-900/80 hover:bg-indigo-800 text-indigo-100 text-sm font-medium transition border border-indigo-700/60 cursor-pointer">
+                    <svg id="soundOnIcon" class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path>
+                    </svg>
+                    <svg id="soundOffIcon" class="w-5 h-5 text-rose-400 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15zM17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2"></path>
+                    </svg>
+                    <span class="hidden sm:inline" id="soundStatusText">Звук вкл.</span>
+                </button>
+
+                <!-- Кнопка словаря урока -->
+                <button id="openVocabModalBtn" type="button"
+                    class="flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-semibold text-sm shadow-md transition transform active:scale-95 cursor-pointer">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                    </svg>
+                    <span>Словарь урока (20)</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Основной контент -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
+            
+            <!-- ЛЕВАЯ КОЛОНКА: Барабан и управление -->
+            <section class="lg:col-span-5 bg-white rounded-3xl shadow-md border border-slate-200/80 p-5 sm:p-6 flex flex-col items-center">
+                <div class="w-full flex items-center justify-between mb-3">
+                    <span class="text-xs font-bold uppercase tracking-wider text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full">
+                        Колесо вопросов
+                    </span>
+                    <span id="remainingCounter" class="text-xs font-semibold text-slate-500">
+                        Доступно карточек: 13 / 13
+                    </span>
+                </div>
+
+                <!-- Контейнер барабана с указателем -->
+                <div class="relative w-full max-w-[360px] aspect-square my-2 flex items-center justify-center">
+                    <!-- Внешнее декоративное кольцо -->
+                    <div class="absolute inset-0 rounded-full border-[10px] border-slate-800 shadow-2xl pointer-events-none z-10"></div>
+                    
+                    <!-- Указатель (стрелка сверху) -->
+                    <div class="absolute -top-3 left-1/2 -translate-x-1/2 z-20 drop-shadow-lg pointer-events-none">
+                        <svg width="42" height="46" viewBox="0 0 42 46" fill="none">
+                            <path d="M21 45L3 10C1.5 6.5 4 2 8 2H34C38 2 40.5 6.5 39 10L21 45Z" fill="#EF4444" stroke="#FFFFFF" stroke-width="3"/>
+                            <circle cx="21" cy="12" r="4" fill="#FFFFFF"/>
+                        </svg>
+                    </div>
+
+                    <!-- Canvas барабана -->
+                    <div id="wheelWrapper" class="w-full h-full p-2">
+                        <canvas id="wheelCanvas" class="w-full h-full rounded-full cursor-pointer"></canvas>
+                    </div>
+
+                    <!-- Центральная кнопка на барабане -->
+                    <button id="centerSpinBtn" type="button" aria-label="Крутить барабан"
+                        class="absolute z-20 w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-slate-900 hover:bg-indigo-900 text-white font-extrabold text-xs sm:text-sm tracking-wider uppercase shadow-xl border-4 border-white flex items-center justify-center transition transform hover:scale-105 active:scale-95 cursor-pointer">
+                        SPIN
+                    </button>
+                </div>
+
+                <!-- Главная кнопка запуска -->
+                <button id="spinBtn" type="button"
+                    class="w-full mt-4 py-4 px-6 rounded-2xl bg-gradient-to-r from-indigo-600 via-indigo-700 to-purple-700 hover:from-indigo-500 hover:to-purple-600 text-white font-extrabold text-base sm:text-lg tracking-wide shadow-lg shadow-indigo-200 transition transform hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 cursor-pointer">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                    </svg>
+                    <span>КРУТИТЬ БАРАБАН</span>
+                </button>
+
+                <!-- Настройки режима барабана -->
+                <div class="w-full mt-5 pt-4 border-t border-slate-100 flex flex-col gap-3">
+                    <label class="flex items-center justify-between cursor-pointer select-none p-2 rounded-xl hover:bg-slate-50 transition">
+                        <span class="text-sm font-medium text-slate-700">Убирать выпавшие карточки</span>
+                        <div class="relative inline-flex items-center">
+                            <input type="checkbox" id="removeSpunToggle" class="sr-only peer" checked>
+                            <div class="w-11 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+                        </div>
+                    </label>
+
+                    <div class="flex items-center justify-between gap-2">
+                        <button id="resetWheelBtn" type="button"
+                            class="flex-1 py-2.5 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs sm:text-sm transition flex items-center justify-center gap-1.5 cursor-pointer">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                            </svg>
+                            <span>Сбросить барабан</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Быстрый выбор любой карточки вручную -->
+                <div class="w-full mt-4 pt-3 border-t border-slate-100">
+                    <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
+                        Или выберите карточку вручную:
+                    </p>
+                    <div id="quickCardSelector" class="flex flex-wrap gap-1.5">
+                        <!-- Кнопки 1-13 генерируются через JS -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- ПРАВАЯ КОЛОНКА: Активная карточка, вопросы, лексика и фразы-помощники -->
+            <section class="lg:col-span-7 flex flex-col gap-5">
+                
+                <!-- Стартовый экран-заглушка до первого вращения -->
+                <div id="emptyStatePanel" class="bg-white rounded-3xl shadow-md border border-slate-200/80 p-8 sm:p-12 text-center flex flex-col items-center justify-center min-h-[460px]">
+                    <div class="w-20 h-20 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center mb-5 animate-pulse-slow">
+                        <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                    <h2 class="text-2xl font-bold text-slate-800 mb-2">Готовы начать практику IELTS?</h2>
+                    <p class="text-slate-600 max-w-md mb-6 leading-relaxed">
+                        Нажмите <span class="font-semibold text-indigo-600">«Крутить барабан»</span> слева или выберите номер карточки, чтобы получить вопрос на понимание текста, два дискуссионных вопроса IELTS Part 3, целевую лексику и фразы для начала ответа.
+                    </p>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full max-w-lg text-left">
+                        <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-100">
+                            <div class="text-indigo-600 font-bold text-sm mb-1">1. Вопросы</div>
+                            <div class="text-xs text-slate-500">Reading Comprehension + 2 вопроса IELTS Part 3</div>
+                        </div>
+                        <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-100">
+                            <div class="text-emerald-600 font-bold text-sm mb-1">2. Слова поддержки</div>
+                            <div class="text-xs text-slate-500">Лексика из урока с синонимами и переводом</div>
+                        </div>
+                        <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-100">
+                            <div class="text-amber-600 font-bold text-sm mb-1">3. Sentence Starters</div>
+                            <div class="text-xs text-slate-500">Готовые конструкции для уверенного ответа</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Панель активной карточки (скрыта до выбора) -->
+                <div id="activeCardPanel" class="hidden flex-col gap-5 card-appear">
+                    
+                    <!-- Шапка карточки + Встроенный таймер IELTS Speaking -->
+                    <div class="bg-white rounded-3xl shadow-md border border-slate-200/80 p-5 sm:p-6">
+                        <div class="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-slate-100">
+                            <div class="flex items-center gap-3">
+                                <span id="cardBadgeColor" class="w-12 h-12 rounded-2xl bg-indigo-600 text-white font-extrabold text-xl flex items-center justify-center shadow-md">
+                                    1
+                                </span>
+                                <div>
+                                    <div class="flex items-center gap-2">
+                                        <h2 id="cardTitle" class="text-xl sm:text-2xl font-extrabold text-slate-900">Card 1</h2>
+                                        <span id="cardTopicTag" class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700">
+                                            Narrow AI vs AGI
+                                        </span>
+                                    </div>
+                                    <p class="text-xs sm:text-sm text-slate-500 mt-0.5">Ответьте на вопросы, используя слова и фразы ниже</p>
+                                </div>
+                            </div>
+
+                            <!-- Таймер для тренировки речи -->
+                            <div class="flex items-center gap-2 bg-slate-900 text-white px-3.5 py-2 rounded-2xl shadow-inner">
+                                <div class="flex flex-col mr-1">
+                                    <span class="text-[10px] uppercase tracking-wider text-slate-400 font-semibold">Таймер речи</span>
+                                    <span id="timerDisplay" class="font-mono text-lg sm:text-xl font-bold text-emerald-400 leading-none">01:00</span>
+                                </div>
+                                <button id="timer1mBtn" type="button" title="Установить 1 минуту"
+                                    class="px-2 py-1 text-xs font-bold rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 transition cursor-pointer">
+                                    1м
+                                </button>
+                                <button id="timer2mBtn" type="button" title="Установить 2 минуты"
+                                    class="px-2 py-1 text-xs font-bold rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 transition cursor-pointer">
+                                    2м
+                                </button>
+                                <button id="timerStartPauseBtn" type="button" title="Старт / Пауза"
+                                    class="p-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold transition cursor-pointer">
+                                    <svg id="timerPlayIcon" class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                        <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z"></path>
+                                    </svg>
+                                    <svg id="timerPauseIcon" class="w-4 h-4 hidden" fill="currentColor" viewBox="0 0 20 20">
+                                        <path d="M5.75 3a.75.75 0 00-.75.75v12.5c0 .414.336.75.75.75h1.5a.75.75 0 00.75-.75V3.75A.75.75 0 007.25 3h-1.5zM12.75 3a.75.75 0 00-.75.75v12.5c0 .414.336.75.75.75h1.5a.75.75 0 00.75-.75V3.75a.75.75 0 00-.75-.75h-1.5z"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Блок 1: Reading Comprehension -->
+                        <div class="mt-5 bg-blue-50/70 border border-blue-200/80 rounded-2xl p-4 sm:p-5">
+                            <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+                                <span class="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-blue-800 bg-blue-100 px-2.5 py-1 rounded-lg">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                                    </svg>
+                                    Reading Comprehension
+                                </span>
+                                <button id="toggleAnswerBtn" type="button"
+                                    class="text-xs font-bold px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white shadow-sm transition cursor-pointer">
+                                    Показать ответ
+                                </button>
+                            </div>
+                            <p id="readingQuestionText" class="text-base sm:text-lg font-semibold text-slate-900 leading-snug">
+                                <!-- Текст вопроса -->
+                            </p>
+                            <!-- Скрываемый ответ -->
+                            <div id="readingAnswerBox" class="hidden mt-3 pt-3 border-t border-blue-200 text-sm sm:text-base text-slate-700 bg-white/90 p-3.5 rounded-xl">
+                                <span class="font-bold text-emerald-700 block text-xs uppercase tracking-wider mb-1">Sample Answer:</span>
+                                <p id="readingAnswerText" class="leading-relaxed"></p>
+                            </div>
+                        </div>
+
+                        <!-- Блок 2: IELTS Speaking Part 3 -->
+                        <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="bg-purple-50/70 border border-purple-200/80 rounded-2xl p-4 sm:p-5 flex flex-col justify-between">
+                                <div>
+                                    <span class="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-purple-800 bg-purple-100 px-2.5 py-1 rounded-lg mb-2.5">
+                                        IELTS Part 3 • Question 1
+                                    </span>
+                                    <p id="ieltsQ1Text" class="text-base font-semibold text-slate-900 leading-snug">
+                                        <!-- Вопрос 1 -->
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div class="bg-fuchsia-50/70 border border-fuchsia-200/80 rounded-2xl p-4 sm:p-5 flex flex-col justify-between">
+                                <div>
+                                    <span class="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-fuchsia-800 bg-fuchsia-100 px-2.5 py-1 rounded-lg mb-2.5">
+                                        IELTS Part 3 • Question 2
+                                    </span>
+                                    <p id="ieltsQ2Text" class="text-base font-semibold text-slate-900 leading-snug">
+                                        <!-- Вопрос 2 -->
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Панель поддержки для ответа: Слова + Sentence Starters -->
+                    <div class="bg-white rounded-3xl shadow-md border border-slate-200/80 p-5 sm:p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-base sm:text-lg font-extrabold text-slate-900 flex items-center gap-2">
+                                <span class="w-2.5 h-6 rounded-full bg-emerald-500 inline-block"></span>
+                                Поддержка для ответа (Speaking & Reading Scaffolding)
+                            </h3>
+                            <span class="text-xs text-slate-400 hidden sm:inline">Нажмите на слово для перевода</span>
+                        </div>
+
+                        <!-- Целевая лексика (Word Bank) -->
+                        <div class="mb-6">
+                            <div class="text-xs font-bold uppercase tracking-wider text-emerald-700 mb-2.5 flex items-center gap-1.5">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
+                                </svg>
+                                Target Vocabulary & Synonyms (Слова для поддержки)
+                            </div>
+                            <div id="cardVocabContainer" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <!-- Карточки слов генерируются динамически -->
+                            </div>
+                        </div>
+
+                        <!-- Sentence Starters -->
+                        <div>
+                            <div class="text-xs font-bold uppercase tracking-wider text-amber-700 mb-2.5 flex items-center gap-1.5">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path>
+                                </svg>
+                                Sentence Starters (Начните ответ с этих фраз)
+                            </div>
+                            <div id="sentenceStartersContainer" class="flex flex-col gap-2.5">
+                                <!-- Фразы генерируются динамически -->
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Модальное окно полного словаря урока (20 слов) -->
+    <div id="vocabModal" class="fixed inset-0 z-50 hidden bg-slate-950/60 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-4xl w-full max-h-[88vh] flex flex-col overflow-hidden border border-slate-200 card-appear">
+            <div class="px-6 py-4 bg-indigo-950 text-white flex items-center justify-between">
+                <div>
+                    <h3 class="text-lg sm:text-xl font-bold">IELTS Vocabulary: Living with Artificial Intelligence</h3>
+                    <p class="text-xs text-indigo-300">20 ключевых слов и выражений из текста с переводом и синонимами</p>
+                </div>
+                <button id="closeVocabModalBtn" type="button" class="p-2 rounded-xl bg-indigo-900 hover:bg-indigo-800 text-white transition cursor-pointer">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Поиск по словарю -->
+            <div class="px-6 py-3 bg-slate-50 border-b border-slate-200">
+                <input type="text" id="vocabSearchInput" placeholder="Поиск слова на английском или русском..."
+                    class="w-full px-4 py-2 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
+            </div>
+
+            <div class="p-6 overflow-y-auto flex-1">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="border-b-2 border-slate-200 text-xs font-bold uppercase text-slate-500">
+                                <th class="py-2.5 px-3">Слово / выражение</th>
+                                <th class="py-2.5 px-3">Значение</th>
+                                <th class="py-2.5 px-3">Близкие синонимы (IELTS)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="fullVocabTableBody" class="divide-y divide-slate-100 text-sm">
+                            <!-- Строки заполняются через JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Всплывающее уведомление (вместо alert) -->
+    <div id="toastNotification" class="fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
+        <div class="bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-xl border border-slate-700 flex items-center gap-3 text-sm font-medium">
+            <span id="toastMessage">Сообщение</span>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // 1. БАЗА ДАННЫХ: СЛОВАРЬ И 13 КАРТОЧЕК
+        // ==========================================
+        const FULL_VOCABULARY = [
+            { word: "astonishing", ru: "удивительный, поразительный", synonyms: "amazing, remarkable, impressive" },
+            { word: "achievement", ru: "достижение", synonyms: "accomplishment, success, feat" },
+            { word: "specialised", ru: "специализированный", synonyms: "specific, dedicated, focused" },
+            { word: "restriction", ru: "ограничение", synonyms: "limitation, constraint, control" },
+            { word: "temporary", ru: "временный", synonyms: "short-term, brief, provisional" },
+            { word: "performance", ru: "результативность, выполнение", synonyms: "effectiveness, functioning, ability" },
+            { word: "constraint", ru: "ограничение, сдерживающий фактор", synonyms: "limitation, restriction, obstacle" },
+            { word: "accelerate", ru: "ускорять(ся)", synonyms: "speed up, quicken, increase the pace" },
+            { word: "profitable", ru: "прибыльный", synonyms: "lucrative, financially rewarding, beneficial" },
+            { word: "specify", ru: "точно указывать, определять", synonyms: "define, state clearly, set out" },
+            { word: "consequence", ru: "последствие", synonyms: "result, outcome, effect" },
+            { word: "reliably", ru: "надёжно, стабильно", synonyms: "consistently, dependably, steadily" },
+            { word: "aligned with", ru: "согласованный с, соответствующий", synonyms: "consistent with, in line with, compatible with" },
+            { word: "suffering", ru: "страдание", synonyms: "pain, distress, hardship" },
+            { word: "autonomy", ru: "самостоятельность, автономия", synonyms: "independence, self-government, freedom" },
+            { word: "discourage", ru: "отговаривать, препятствовать", synonyms: "dissuade, deter, prevent" },
+            { word: "efficiently", ru: "эффективно", synonyms: "effectively, productively, with little waste" },
+            { word: "ensure", ru: "обеспечивать, гарантировать", synonyms: "make sure, guarantee, secure" },
+            { word: "cooperative", ru: "готовый к сотрудничеству", synonyms: "collaborative, supportive, willing to work together" },
+            { word: "self-interest", ru: "личная выгода, собственный интерес", synonyms: "personal advantage, own interests, self-serving motives" }
+        ];
+
+        // Удобный поиск слова по названию
+        const vocabMap = {};
+        FULL_VOCABULARY.forEach(item => {
+            vocabMap[item.word.toLowerCase()] = item;
+        });
+
+        // Цвета для 13 секторов барабана (яркие, контрастные, гармоничные)
+        const SEGMENT_COLORS = [
+            "#4F46E5", // Indigo
+            "#0EA5E9", // Sky
+            "#10B981", // Emerald
+            "#F59E0B", // Amber
+            "#EC4899", // Pink
+            "#8B5CF6", // Violet
+            "#14B8A6", // Teal
+            "#F97316", // Orange
+            "#3B82F6", // Blue
+            "#84CC16", // Lime
+            "#E11D48", // Rose
+            "#6366F1", // Indigo-light
+            "#06B6D4"  // Cyan
+        ];
+
+        // Все 13 карточек из запроса с лексикой и sentence starters
+        const CARDS_DATA = [
+            {
+                id: 1,
+                label: "Card 1",
+                topic: "Narrow AI vs AGI",
+                color: SEGMENT_COLORS[0],
+                readingQ: "What is the main difference between 'narrow AI' and 'artificial general intelligence' (AGI) according to the text?",
+                readingA: "Narrow AI performs highly specialised tasks (like playing chess), whereas AGI will be able to achieve human-level performance across the full range of tasks that humans can tackle.",
+                ieltsQ1: "Why do you think people are often fascinated by machines that can beat humans at complex games like chess?",
+                ieltsQ2: "Do you think machines will ever truly be able to replicate every aspect of human intelligence, including creativity and empathy?",
+                vocabWords: ["specialised", "achievement", "performance", "astonishing"],
+                starters: [
+                    "According to the text, the primary distinction lies in...",
+                    "I suspect people are fascinated because...",
+                    "When it comes to replicating empathy and creativity, I would argue that..."
+                ]
+            },
+            {
+                id: 2,
+                label: "Card 2",
+                topic: "Brain Physical Limits",
+                color: SEGMENT_COLORS[1],
+                readingQ: "What physical limitations restrict the human brain compared to machines?",
+                readingA: "Human brains operate at slow biochemical processing speeds, run on the minimal power of a light bulb, and have their size restricted by the dimensions of the human birth canal.",
+                ieltsQ1: "How has modern technology already compensated for the physical limitations of the human body and brain?",
+                ieltsQ2: "Do you think relying too heavily on technology for memory and calculation is making humans less intelligent?",
+                vocabWords: ["restriction", "temporary", "performance", "efficiently"],
+                starters: [
+                    "Compared to machines, the human brain is constrained by...",
+                    "Modern technology has largely compensated for this by...",
+                    "In my view, relying on digital tools does not necessarily make us less intelligent; rather..."
+                ]
+            },
+            {
+                id: 3,
+                label: "Card 3",
+                topic: "Accelerating Progress",
+                color: SEGMENT_COLORS[2],
+                readingQ: "What specific milestone will cause progress towards the physical limits of intelligence to accelerate rapidly?",
+                readingA: "Progress will accelerate once machines become better than humans at designing even smarter machines.",
+                ieltsQ1: "Why has technological development become so much faster in the last few decades compared to previous centuries?",
+                ieltsQ2: "What are the potential dangers of technological progress happening faster than society can adapt to it?",
+                vocabWords: ["accelerate", "astonishing", "achievement", "consequence"],
+                starters: [
+                    "The turning point will occur once machines...",
+                    "The pace of innovation has quickened dramatically because...",
+                    "One major consequence of technology outpacing society is..."
+                ]
+            },
+            {
+                id: 4,
+                label: "Card 4",
+                topic: "Myth of King Midas",
+                color: SEGMENT_COLORS[3],
+                readingQ: "Why does the author mention the myth of King Midas when discussing super AI?",
+                readingA: "To illustrate the danger of specifying AI goals carelessly—asking for something that sounds beneficial without accounting for literal interpretations can lead to disastrous, unintended outcomes (like Midas turning his breakfast into gold).",
+                ieltsQ1: "Why is it often difficult for people to predict the unintended consequences of new inventions?",
+                ieltsQ2: "Who should be responsible for setting the ethical boundaries and goals for AI developers: governments, scientists, or the public?",
+                vocabWords: ["specify", "consequence", "profitable", "ensure"],
+                starters: [
+                    "The author uses the myth of King Midas to illustrate...",
+                    "Predicting unintended outcomes is challenging because...",
+                    "Ultimately, the responsibility for setting ethical boundaries should lie with..."
+                ]
+            },
+            {
+                id: 5,
+                label: "Card 5",
+                topic: "'Human-Friendly' AI",
+                color: SEGMENT_COLORS[4],
+                readingQ: "What makes creating 'human-friendly' AI particularly challenging according to the fourth paragraph?",
+                readingA: "Humans themselves are not reliably 'human-friendly'—we do terrible things to each other and other creatures, so superintelligent machines might simply amplify the dark sides of our fallible natures.",
+                ieltsQ1: "Do you think technology reflects the best or the worst aspects of human nature?",
+                ieltsQ2: "How can companies ensure that the algorithms they create do not reinforce existing human prejudices?",
+                vocabWords: ["reliably", "aligned with", "suffering", "self-interest"],
+                starters: [
+                    "Creating human-friendly AI is particularly complex given that...",
+                    "On balance, I believe technology acts as a mirror that reflects...",
+                    "To prevent algorithms from reinforcing bias, companies must..."
+                ]
+            },
+            {
+                id: 6,
+                label: "Card 6",
+                topic: "Ethically Superhuman",
+                color: SEGMENT_COLORS[5],
+                readingQ: "Why does the author believe superintelligent machines must be 'ethically as well as cognitively superhuman'?",
+                readingA: "For humanity's safety, machines need to aim for the 'moral high ground' rather than human moral failures, and their superior intellect could make them better than us at finding routes to ethical behavior and steering us in the right direction.",
+                ieltsQ1: "Can morality and ethics be taught as a set of strict rules, or do they depend on the situation?",
+                ieltsQ2: "Would people trust a machine to make a moral decision—for example, in a self-driving car accident—more than a human?",
+                vocabWords: ["aligned with", "reliably", "suffering", "ensure"],
+                starters: [
+                    "For humanity to remain safe, superintelligent machines must...",
+                    "Rather than being a rigid set of rules, morality often depends on...",
+                    "People might be hesitant to trust a machine with a moral dilemma because..."
+                ]
+            },
+            {
+                id: 7,
+                label: "Card 7",
+                topic: "The 'Getting Started' Problem",
+                color: SEGMENT_COLORS[6],
+                readingQ: "What is the 'getting started' problem in developing ethical AI?",
+                readingA: "It is the difficulty of telling machines what moral ideals to look for with sufficient clarity when humans are tribal creatures, conflicted about ideals ourselves, and often ignore or contribute to the suffering of strangers.",
+                ieltsQ1: "Why is it so hard for people from different cultures or backgrounds to agree on what is morally right?",
+                ieltsQ2: "Do you think globalization is helping people develop a shared set of global values?",
+                vocabWords: ["specify", "suffering", "aligned with", "cooperative"],
+                starters: [
+                    "The 'getting started' problem refers to the difficulty of...",
+                    "Cultural and historical backgrounds shape our moral values, which explains why...",
+                    "While globalization has connected us, I am not convinced it has created..."
+                ]
+            },
+            {
+                id: 8,
+                label: "Card 8",
+                topic: "The 'Destination' Problem",
+                color: SEGMENT_COLORS[7],
+                readingQ: "What is the 'destination' problem described by the author?",
+                readingA: "By putting ourselves in the hands of moral machine gatekeepers, we might sacrifice our own autonomy—an important part of what makes us human—and lose the freedom to make certain choices, such as discriminating in favor of our own communities.",
+                ieltsQ1: "How important is personal freedom and the right to make one's own mistakes in life?",
+                ieltsQ2: "In what areas of life are people willing to give up some personal freedom in exchange for safety or convenience?",
+                vocabWords: ["autonomy", "restriction", "constraint", "discourage"],
+                starters: [
+                    "The 'destination' problem highlights the risk that...",
+                    "Having the autonomy to make our own mistakes is vital because...",
+                    "People are generally willing to trade a degree of personal freedom when it comes to..."
+                ]
+            },
+            {
+                id: 9,
+                label: "Card 9",
+                topic: "'Ethical Silicon Police'",
+                color: SEGMENT_COLORS[8],
+                readingQ: "How does the author show that losing the freedom to behave badly isn't always negative, and why might people still reject 'ethical silicon police'?",
+                readingA: "Denying ourselves the freedom to put children to work in factories or smoke in restaurants are signs of progress; however, few people are likely to welcome machines subtly and invisibly limiting their options.",
+                ieltsQ1: "How have societal views on acceptable public behavior changed over the past fifty years?",
+                ieltsQ2: "Would you feel comfortable living in a society where technology subtly nudges people to make healthier or better choices?",
+                vocabWords: ["discourage", "autonomy", "restriction", "consequence"],
+                starters: [
+                    "The author points out that restricting harmful freedoms can be positive, such as...",
+                    "Nevertheless, people would likely resist invisible machine control because...",
+                    "Over the past fifty years, social norms around public behavior have shifted toward..."
+                ]
+            },
+            {
+                id: 10,
+                label: "Card 10",
+                topic: "AI in Healthcare (NHS)",
+                color: SEGMENT_COLORS[9],
+                readingQ: "What would be the main benefit and the main drawback of giving AI a greater role in the UK's National Health Service (NHS)?",
+                readingA: "The benefit is that AI could manage resources much more efficiently in the interests of taxpayers and patients, while the drawback is depriving human professionals (like senior doctors) of the control they currently enjoy.",
+                ieltsQ1: "How can artificial intelligence improve the quality and accessibility of healthcare in the future?",
+                ieltsQ2: "Why might doctors and patients be hesitant to let AI make critical medical decisions?",
+                vocabWords: ["efficiently", "autonomy", "performance", "ensure"],
+                starters: [
+                    "Introducing AI into healthcare offers the clear advantage of..., whereas the main drawback is...",
+                    "In the future, artificial intelligence could transform medical accessibility by...",
+                    "Both doctors and patients may feel reluctant to rely on AI because..."
+                ]
+            },
+            {
+                id: 11,
+                label: "Card 11",
+                topic: "Fairness in Public Systems",
+                color: SEGMENT_COLORS[10],
+                readingQ: "Why is it essential to specify AI goals correctly in public systems like healthcare?",
+                readingA: "Because society wants to ensure that people are treated equally and that resource allocation policies are fair.",
+                ieltsQ1: "Do you think decisions made by computers are generally fairer and less biased than decisions made by humans?",
+                ieltsQ2: "In which professions should human judgment never be completely replaced by artificial intelligence?",
+                vocabWords: ["specify", "ensure", "reliably", "aligned with"],
+                starters: [
+                    "In public services like healthcare, defining AI objectives accurately is crucial to ensure...",
+                    "Although algorithms are often viewed as objective, they are not necessarily fairer because...",
+                    "In my opinion, professions that require deep empathy and moral judgment, such as..."
+                ]
+            },
+            {
+                id: 12,
+                label: "Card 12",
+                topic: "Cooperation vs Self-Interest",
+                color: SEGMENT_COLORS[11],
+                readingQ: "What human qualities will be required to successfully guide AI to act in humanity's best interests?",
+                readingA: "It will require a cooperative spirit and a willingness to set aside self-interest.",
+                ieltsQ1: "Why is international cooperation often difficult when countries are competing to develop the most advanced technologies?",
+                ieltsQ2: "What kind of global agreements or treaties do you think are needed to regulate artificial intelligence?",
+                vocabWords: ["cooperative", "self-interest", "ensure", "profitable"],
+                starters: [
+                    "Guiding AI toward the common good will require humanity to...",
+                    "International cooperation is often hindered by fierce competition and...",
+                    "To regulate AI effectively on a global scale, nations need to establish..."
+                ]
+            },
+            {
+                id: 13,
+                label: "Card 13",
+                topic: "The Final Warning",
+                color: SEGMENT_COLORS[12],
+                readingQ: "What is the author's final warning regarding general intelligence and moral reasoning in machines?",
+                readingA: "Safety requires treating them as a package—if we give machines general intelligence, we must also give them moral authority—which means we must carefully consider where that leaves human beings and be careful about what we wish for.",
+                ieltsQ1: "How might the role and purpose of human beings in society change if machines become smarter than us at everything?",
+                ieltsQ2: "Are you generally optimistic or pessimistic about the long-term impact of artificial intelligence on humanity?",
+                vocabWords: ["consequence", "autonomy", "ensure", "achievement"],
+                starters: [
+                    "The author's concluding warning emphasizes that general intelligence and moral reasoning must be treated as...",
+                    "If machines surpass human intellect in every domain, our sense of purpose might...",
+                    "Looking at the long-term trajectory of AI, I feel cautiously optimistic/pessimistic because..."
+                ]
+            }
+        ];
+
+        // ==========================================
+        // 2. СОСТОЯНИЕ ПРИЛОЖЕНИЯ
+        // ==========================================
+        let activeCards = [...CARDS_DATA]; // Карточки, оставшиеся на барабане
+        let spunCardIds = new Set();        // ID уже выпавших карточек
+        let currentRotation = 0;            // Текущий угол поворота в радианах
+        let isSpinning = false;
+        let soundEnabled = true;
+        let selectedCardId = null;
+
+        // Состояние таймера
+        let timerSeconds = 60;
+        let timerInterval = null;
+        let isTimerRunning = false;
+
+        // ==========================================
+        // 3. ЗВУКОВЫЕ ЭФФЕКТЫ (Web Audio API)
+        // ==========================================
+        let audioCtx = null;
+
+        function initAudio() {
+            if (!audioCtx) {
+                const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                if (AudioContextClass) {
+                    audioCtx = new AudioContextClass();
+                }
+            }
+            if (audioCtx && audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        function playTickSound() {
+            if (!soundEnabled) return;
+            try {
+                initAudio();
+                if (!audioCtx) return;
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(520, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(180, audioCtx.currentTime + 0.04);
+
+                gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.04);
+
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.045);
+            } catch (e) {
+                // Игнорируем ограничения автовоспроизведения
+            }
+        }
+
+        function playWinChime() {
+            if (!soundEnabled) return;
+            try {
+                initAudio();
+                if (!audioCtx) return;
+                const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+                notes.forEach((freq, idx) => {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    const startTime = audioCtx.currentTime + idx * 0.09;
+
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(freq, startTime);
+
+                    gain.gain.setValueAtTime(0.15, startTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.45);
+
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start(startTime);
+                    osc.stop(startTime + 0.46);
+                });
+            } catch (e) {}
+        }
+
+        function playTimerEndBeep() {
+            if (!soundEnabled) return;
+            try {
+                initAudio();
+                if (!audioCtx) return;
+                [0, 0.25].forEach(delay => {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    const t = audioCtx.currentTime + delay;
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(880, t);
+                    gain.gain.setValueAtTime(0.18, t);
+                    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.2);
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start(t);
+                    osc.stop(t + 0.21);
+                });
+            } catch (e) {}
+        }
+
+        // ==========================================
+        // 4. ОТРИСОВКА И ФИЗИКА БАРАБАНА (CANVAS)
+        // ==========================================
+        const canvas = document.getElementById('wheelCanvas');
+        const ctx = canvas.getContext('2d');
+
+        function resizeCanvas() {
+            const container = document.getElementById('wheelWrapper');
+            const size = container.clientWidth;
+            const dpr = window.devicePixelRatio || 1;
+            canvas.width = size * dpr;
+            canvas.height = size * dpr;
+            ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+            drawWheel();
+        }
+
+        function drawWheel() {
+            const container = document.getElementById('wheelWrapper');
+            const size = container.clientWidth;
+            const center = size / 2;
+            const radius = center - 4;
+
+            ctx.clearRect(0, 0, size, size);
+
+            if (activeCards.length === 0) {
+                // Если все карточки убраны
+                ctx.beginPath();
+                ctx.arc(center, center, radius, 0, Math.PI * 2);
+                ctx.fillStyle = '#E2E8F0';
+                ctx.fill();
+                ctx.fillStyle = '#475569';
+                ctx.font = 'bold 16px Inter, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('Все карточки пройдены!', center, center - 12);
+                ctx.font = '13px Inter, sans-serif';
+                ctx.fillText('Нажмите «Сбросить барабан»', center, center + 12);
+                return;
+            }
+
+            const numSegments = activeCards.length;
+            const arc = (Math.PI * 2) / numSegments;
+
+            activeCards.forEach((card, i) => {
+                const angle = currentRotation + i * arc;
+
+                // Сектор
+                ctx.beginPath();
+                ctx.moveTo(center, center);
+                ctx.arc(center, center, radius, angle, angle + arc);
+                ctx.closePath();
+                ctx.fillStyle = card.color;
+                ctx.fill();
+
+                // Разделительная линия между секторами
+                ctx.lineWidth = 2;
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.85)';
+                ctx.stroke();
+
+                // Текст на секторе
+                ctx.save();
+                ctx.translate(center, center);
+                ctx.rotate(angle + arc / 2);
+                ctx.textAlign = 'right';
+                ctx.textBaseline = 'middle';
+                ctx.fillStyle = '#FFFFFF';
+                ctx.shadowColor = 'rgba(0, 0, 0, 0.35)';
+                ctx.shadowBlur = 4;
+
+                const fontSize = numSegments > 9 ? (size < 300 ? 12 : 14) : (size < 300 ? 14 : 16);
+                ctx.font = `800 ${fontSize}px Inter, sans-serif`;
+                ctx.fillText(card.label, radius - 18, 0);
+                ctx.restore();
+            });
+        }
+
+        // Определение карточки под верхней стрелкой (угол -PI/2 или 3*PI/2)
+        function getCardAtPointer(rotation) {
+            if (activeCards.length === 0) return null;
+            const numSegments = activeCards.length;
+            const arc = (Math.PI * 2) / numSegments;
+            // Указатель находится сверху (-PI/2 = 1.5 * PI)
+            const pointerAngle = (Math.PI * 1.5);
+            const normalizedRotation = ((rotation % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
+            const relativeAngle = (pointerAngle - normalizedRotation + Math.PI * 2) % (Math.PI * 2);
+            const index = Math.floor(relativeAngle / arc) % numSegments;
+            return activeCards[index];
+        }
+
+        function spinWheel() {
+            if (isSpinning) return;
+
+            if (activeCards.length === 0) {
+                showToast('Все карточки уже выпали! Нажмите «Сбросить барабан».');
+                return;
+            }
+
+            isSpinning = true;
+            document.getElementById('spinBtn').disabled = true;
+
+            // Если включено удаление выпавших карточек, и текущая карточка была выбрана в прошлый раз — удалим её перед новым вращением
+            const removeSpun = document.getElementById('removeSpunToggle').checked;
+            if (removeSpun && selectedCardId !== null && activeCards.length > 1) {
+                const idxToRemove = activeCards.findIndex(c => c.id === selectedCardId);
+                if (idxToRemove !== -1) {
+                    activeCards.splice(idxToRemove, 1);
+                    updateRemainingUI();
+                }
+            }
+
+            const startRotation = currentRotation;
+            // Минимум 5-8 полных оборотов + случайный угол
+            const extraSpins = (5 + Math.random() * 3) * Math.PI * 2;
+            const randomOffset = Math.random() * Math.PI * 2;
+            const targetRotation = startRotation + extraSpins + randomOffset;
+
+            const duration = 3800; // 3.8 секунды
+            const startTime = performance.now();
+            let lastSectorIndex = -1;
+
+            function animate(now) {
+                const elapsed = now - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+
+                // Плавное замедление (easeOutQuart)
+                const easeOut = 1 - Math.pow(1 - progress, 4);
+                currentRotation = startRotation + (targetRotation - startRotation) * easeOut;
+
+                drawWheel();
+
+                // Звук тиканья при пересечении границ секторов
+                const currentCard = getCardAtPointer(currentRotation);
+                if (currentCard && currentCard.id !== lastSectorIndex) {
+                    lastSectorIndex = currentCard.id;
+                    playTickSound();
+                }
+
+                if (progress < 1) {
+                    requestAnimationFrame(animate);
+                } else {
+                    isSpinning = false;
+                    document.getElementById('spinBtn').disabled = false;
+                    const landedCard = getCardAtPointer(currentRotation);
+                    if (landedCard) {
+                        playWinChime();
+                        spunCardIds.add(landedCard.id);
+                        displayCard(landedCard);
+                        updateQuickSelector();
+                    }
+                }
+            }
+
+            requestAnimationFrame(animate);
+        }
+
+        // ==========================================
+        // 5. ОТОБРАЖЕНИЕ ВЫБРАННОЙ КАРТОЧКИ
+        // ==========================================
+        function displayCard(card) {
+            selectedCardId = card.id;
+            spunCardIds.add(card.id);
+
+            // Переключаем видимость панелей
+            document.getElementById('emptyStatePanel').classList.add('hidden');
+            const activePanel = document.getElementById('activeCardPanel');
+            activePanel.classList.remove('hidden');
+            activePanel.classList.add('flex');
+
+            // Перезапускаем анимацию появления
+            activePanel.classList.remove('card-appear');
+            void activePanel.offsetWidth;
+            activePanel.classList.add('card-appear');
+
+            // Заголовок и бейдж
+            const badge = document.getElementById('cardBadgeColor');
+            badge.textContent = card.id;
+            badge.style.backgroundColor = card.color;
+
+            document.getElementById('cardTitle').textContent = card.label;
+            document.getElementById('cardTopicTag').textContent = card.topic;
+
+            // Вопросы
+            document.getElementById('readingQuestionText').textContent = card.readingQ;
+            document.getElementById('readingAnswerText').textContent = card.readingA;
+            document.getElementById('ieltsQ1Text').textContent = card.ieltsQ1;
+            document.getElementById('ieltsQ2Text').textContent = card.ieltsQ2;
+
+            // Скрываем ответ по умолчанию при открытии новой карточки
+            const answerBox = document.getElementById('readingAnswerBox');
+            const toggleBtn = document.getElementById('toggleAnswerBtn');
+            answerBox.classList.add('hidden');
+            toggleBtn.textContent = 'Показать ответ';
+
+            // Отрисовка целевой лексики для этой карточки
+            const vocabContainer = document.getElementById('cardVocabContainer');
+            vocabContainer.innerHTML = '';
+
+            card.vocabWords.forEach(wordKey => {
+                const entry = vocabMap[wordKey.toLowerCase()];
+                if (!entry) return;
+
+                const wordCard = document.createElement('div');
+                wordCard.className = 'group p-3.5 rounded-2xl bg-emerald-50/70 hover:bg-emerald-100/80 border border-emerald-200/80 transition cursor-pointer select-none';
+                wordCard.innerHTML = `
+                    <div class="flex items-center justify-between gap-2">
+                        <span class="font-bold text-slate-900 text-base">${entry.word}</span>
+                        <span class="text-[11px] font-semibold px-2 py-0.5 rounded-md bg-white text-emerald-700 border border-emerald-200 shadow-2xs translation-badge">
+                            Перевод
+                        </span>
+                    </div>
+                    <div class="text-xs text-slate-600 mt-1">
+                        <span class="font-medium text-slate-500">Synonyms:</span> ${entry.synonyms}
+                    </div>
+                    <div class="hidden mt-2 pt-1.5 border-t border-emerald-200/70 text-xs font-semibold text-emerald-900 translation-text">
+                        🇷🇺 ${entry.ru}
+                    </div>
+                `;
+
+                // Клик показывает/скрывает русский перевод
+                wordCard.addEventListener('click', () => {
+                    const trText = wordCard.querySelector('.translation-text');
+                    const trBadge = wordCard.querySelector('.translation-badge');
+                    const isHidden = trText.classList.contains('hidden');
+                    if (isHidden) {
+                        trText.classList.remove('hidden');
+                        trBadge.textContent = 'Скрыть';
+                    } else {
+                        trText.classList.add('hidden');
+                        trBadge.textContent = 'Перевод';
+                    }
+                });
+
+                vocabContainer.appendChild(wordCard);
+            });
+
+            // Отрисовка Sentence Starters
+            const startersContainer = document.getElementById('sentenceStartersContainer');
+            startersContainer.innerHTML = '';
+
+            card.starters.forEach((starter, index) => {
+                const starterEl = document.createElement('div');
+                starterEl.className = 'flex items-center justify-between gap-3 p-3 rounded-xl bg-amber-50/70 border border-amber-200/80 text-sm sm:text-base text-slate-800 font-medium';
+                starterEl.innerHTML = `
+                    <div class="flex items-start gap-2.5">
+                        <span class="w-5 h-5 rounded-full bg-amber-200 text-amber-900 font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">${index + 1}</span>
+                        <span>"${starter}"</span>
+                    </div>
+                    <button type="button" title="Скопировать фразу" class="copy-starter-btn p-1.5 rounded-lg text-amber-700 hover:bg-amber-200/60 transition shrink-0 cursor-pointer">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                        </svg>
+                    </button>
+                `;
+
+                starterEl.querySelector('.copy-starter-btn').addEventListener('click', () => {
+                    copyTextFallback(starter);
+                    showToast('Фраза скопирована в буфер обмена!');
+                });
+
+                startersContainer.appendChild(starterEl);
+            });
+
+            updateQuickSelector();
+            updateRemainingUI();
+
+            // На мобильных устройствах плавно прокручиваем к карточке
+            if (window.innerWidth < 1024) {
+                activePanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }
+
+        // Копирование текста через execCommand (безопасно для iframe)
+        function copyTextFallback(text) {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.style.position = 'fixed';
+            textarea.style.opacity = '0';
+            document.body.appendChild(textarea);
+            textarea.select();
+            try {
+                document.execCommand('copy');
+            } catch (err) {}
+            document.body.removeChild(textarea);
+        }
+
+        // ==========================================
+        // 6. УПРАВЛЕНИЕ КАРТОЧКАМИ И СБРОС
+        // ==========================================
+        function updateRemainingUI() {
+            document.getElementById('remainingCounter').textContent = `Доступно карточек: ${activeCards.length} / ${CARDS_DATA.length}`;
+        }
+
+        function updateQuickSelector() {
+            const container = document.getElementById('quickCardSelector');
+            container.innerHTML = '';
+
+            CARDS_DATA.forEach(card => {
+                const isSelected = selectedCardId === card.id;
+                const isSpun = spunCardIds.has(card.id);
+
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.textContent = card.id;
+                btn.title = `${card.label}: ${card.topic}`;
+
+                let classes = 'w-8 h-8 rounded-lg font-bold text-xs transition cursor-pointer flex items-center justify-center ';
+                if (isSelected) {
+                    classes += 'bg-indigo-600 text-white ring-2 ring-indigo-300 shadow-sm scale-105';
+                } else if (isSpun) {
+                    classes += 'bg-slate-200 text-slate-500 hover:bg-slate-300';
+                } else {
+                    classes += 'bg-slate-100 text-slate-700 hover:bg-indigo-100 hover:text-indigo-700';
+                }
+                btn.className = classes;
+
+                btn.addEventListener('click', () => {
+                    if (isSpinning) return;
+                    displayCard(card);
+                });
+
+                container.appendChild(btn);
+            });
+        }
+
+        function resetWheel() {
+            if (isSpinning) return;
+            activeCards = [...CARDS_DATA];
+            spunCardIds.clear();
+            selectedCardId = null;
+            currentRotation = 0;
+            drawWheel();
+            updateRemainingUI();
+            updateQuickSelector();
+
+            document.getElementById('activeCardPanel').classList.add('hidden');
+            document.getElementById('activeCardPanel').classList.remove('flex');
+            document.getElementById('emptyStatePanel').classList.remove('hidden');
+
+            showToast('Барабан сброшен — все 13 карточек снова в игре!');
+        }
+
+        // ==========================================
+        // 7. ТАЙМЕР IELTS SPEAKING
+        // ==========================================
+        function formatTime(sec) {
+            const m = Math.floor(sec / 60).toString().padStart(2, '0');
+            const s = (sec % 60).toString().padStart(2, '0');
+            return `${m}:${s}`;
+        }
+
+        function updateTimerDisplay() {
+            const el = document.getElementById('timerDisplay');
+            el.textContent = formatTime(timerSeconds);
+            if (timerSeconds <= 10 && timerSeconds > 0) {
+                el.classList.remove('text-emerald-400');
+                el.classList.add('text-rose-400');
+            } else {
+                el.classList.remove('text-rose-400');
+                el.classList.add('text-emerald-400');
+            }
+        }
+
+        function stopTimer() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+            isTimerRunning = false;
+            document.getElementById('timerPlayIcon').classList.remove('hidden');
+            document.getElementById('timerPauseIcon').classList.add('hidden');
+        }
+
+        function setTimer(seconds) {
+            stopTimer();
+            timerSeconds = seconds;
+            updateTimerDisplay();
+        }
+
+        function toggleTimer() {
+            if (isTimerRunning) {
+                stopTimer();
+            } else {
+                if (timerSeconds <= 0) timerSeconds = 60;
+                isTimerRunning = true;
+                document.getElementById('timerPlayIcon').classList.add('hidden');
+                document.getElementById('timerPauseIcon').classList.remove('hidden');
+
+                timerInterval = setInterval(() => {
+                    timerSeconds--;
+                    updateTimerDisplay();
+                    if (timerSeconds <= 0) {
+                        stopTimer();
+                        playTimerEndBeep();
+                        showToast('Время вышло! Отличная работа.');
+                    }
+                }, 1000);
+            }
+        }
+
+        // ==========================================
+        // 8. МОДАЛЬНОЕ ОКНО ПОЛНОГО СЛОВАРЯ (20 СЛОВ)
+        // ==========================================
+        function renderFullVocabTable(filter = '') {
+            const tbody = document.getElementById('fullVocabTableBody');
+            tbody.innerHTML = '';
+            const q = filter.trim().toLowerCase();
+
+            const filtered = FULL_VOCABULARY.filter(item =>
+                item.word.toLowerCase().includes(q) ||
+                item.ru.toLowerCase().includes(q) ||
+                item.synonyms.toLowerCase().includes(q)
+            );
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="3" class="py-6 text-center text-slate-400">Ничего не найдено</td></tr>`;
+                return;
+            }
+
+            filtered.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-indigo-50/50 transition';
+                tr.innerHTML = `
+                    <td class="py-3 px-3 font-bold text-indigo-900">${item.word}</td>
+                    <td class="py-3 px-3 text-slate-700">${item.ru}</td>
+                    <td class="py-3 px-3 text-slate-600 italic">${item.synonyms}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // ==========================================
+        // 9. УВЕДОМЛЕНИЯ И СЛУШАТЕЛИ СОБЫТИЙ
+        // ==========================================
+        let toastTimeout = null;
+        function showToast(msg) {
+            const toast = document.getElementById('toastNotification');
+            document.getElementById('toastMessage').textContent = msg;
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            if (toastTimeout) clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 2800);
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            resizeCanvas();
+            updateQuickSelector();
+            updateRemainingUI();
+            renderFullVocabTable();
+
+            // Кнопки вращения
+            document.getElementById('spinBtn').addEventListener('click', spinWheel);
+            document.getElementById('centerSpinBtn').addEventListener('click', spinWheel);
+            canvas.addEventListener('click', spinWheel);
+
+            // Сброс барабана
+            document.getElementById('resetWheelBtn').addEventListener('click', resetWheel);
+
+            // Показать/скрыть ответ на Reading Comprehension
+            document.getElementById('toggleAnswerBtn').addEventListener('click', () => {
+                const box = document.getElementById('readingAnswerBox');
+                const btn = document.getElementById('toggleAnswerBtn');
+                const isHidden = box.classList.contains('hidden');
+                if (isHidden) {
+                    box.classList.remove('hidden');
+                    btn.textContent = 'Скрыть ответ';
+                } else {
+                    box.classList.add('hidden');
+                    btn.textContent = 'Показать ответ';
+                }
+            });
+
+            // Переключатель звука
+            document.getElementById('soundToggleBtn').addEventListener('click', () => {
+                soundEnabled = !soundEnabled;
+                document.getElementById('soundOnIcon').classList.toggle('hidden', !soundEnabled);
+                document.getElementById('soundOffIcon').classList.toggle('hidden', soundEnabled);
+                document.getElementById('soundStatusText').textContent = soundEnabled ? 'Звук вкл.' : 'Без звука';
+            });
+
+            // Таймер
+            document.getElementById('timer1mBtn').addEventListener('click', () => setTimer(60));
+            document.getElementById('timer2mBtn').addEventListener('click', () => setTimer(120));
+            document.getElementById('timerStartPauseBtn').addEventListener('click', toggleTimer);
+
+            // Модальное окно словаря
+            const vocabModal = document.getElementById('vocabModal');
+            document.getElementById('openVocabModalBtn').addEventListener('click', () => {
+                vocabModal.classList.remove('hidden');
+                document.getElementById('vocabSearchInput').focus();
+            });
+            document.getElementById('closeVocabModalBtn').addEventListener('click', () => {
+                vocabModal.classList.add('hidden');
+            });
+            vocabModal.addEventListener('click', (e) => {
+                if (e.target === vocabModal) vocabModal.classList.add('hidden');
+            });
+            document.getElementById('vocabSearchInput').addEventListener('input', (e) => {
+                renderFullVocabTable(e.target.value);
+            });
+        });
+
+        window.addEventListener('resize', resizeCanvas);
+    </script>
+</body>
+</html>
